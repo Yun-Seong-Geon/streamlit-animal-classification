@@ -13,18 +13,18 @@ def preprocess(image):
     image = tf.image.resize(image, [256,256]) / 255.0
     return image
 
-def predict(data):
+def predict(data,model_img):
     Classes = {
     0:'cat',
     1:'dog',
     2:'wild'
     }
 
-    path_model = 'BigTransferModel.h5'
+    
     data = preprocess(data)
     data = np.expand_dims(data, axis=0)
     with keras.utils.custom_object_scope({'KerasLayer': hub.KerasLayer}):
-        model = load_model(path_model)
+        model = model_img
     pred = model.predict(data)
     pred = np.argmax(pred,axis=1)
 
@@ -45,11 +45,11 @@ def predict(data):
 def main():
     st.write('# Animals Classification')
     img_file = st.file_uploader('## 분류할 동물사진을 업로드 하세요.',type=['png','jpg','jpeg'])
-    
+    model_file = st.file_uploader('모델을 업로드 하세요.',type=['h5'])
     if img_file is not None:
         img = Image.open(img_file)
         img_array = np.array(img)
-        predict(img)        
+        predict(img,model_file)        
     
 
 main()
