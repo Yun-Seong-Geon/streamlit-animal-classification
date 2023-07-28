@@ -46,7 +46,7 @@ def predict(data,model):
     
 def main():
     st.write('# Animals Classification')
-    img_file = st.file_uploader('## 분류할 동물사진을 업로드 하세요.',type=['png','jpg','jpeg'])
+    img_file = st.file_uploader('## 분류할 동물사진을 업로드 하세요.',type=['png','jpg','jpeg'],accept_multiple_files=True)
     stream = st.file_uploader('TF.Keras model file (.h5py.zip)', type='zip')
     print(type(stream))
     if stream is not None:
