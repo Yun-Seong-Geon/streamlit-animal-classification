@@ -11,20 +11,39 @@ from PIL import Image
 import zipfile
 import tempfile
 import os
+import requests
+
 
 def preprocess(image):
     image = tf.image.resize(image, [256,256]) / 255.0
     return image
 
-import tensorflow as tf
 
-def predict(dataes, model):
+
+FILE_ID = "1MN_hfzw78DVWT0JSPauIVLlzy7L4Wr2R"  # 여기에 모델 파일의 Google Drive ID를 입력하세요
+MODEL_PATH = 'model.h5'
+MODEL_URL = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
+
+def loads_model():
+    # 파일이 로컬에 없는 경우에만 다운로드합니다
+    if not os.path.exists(MODEL_PATH):
+        with requests.get(MODEL_URL, stream=True) as r:
+            r.raise_for_status()
+            with open(MODEL_PATH, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192): 
+                    f.write(chunk)
+    
+    with tf.keras.utils.custom_object_scope({'KerasLayer': hub.KerasLayer}):
+        model = tf.keras.models.load_model(MODEL_PATH)
+    return model
+
+def predict(dataes):
     Classes = {
     0:'cat',
     1:'dog',
     2:'wild'
     }
-    
+        
     data_file = np.array([preprocess(data) for data in dataes])
     
     pred = model.predict(data_file)
@@ -39,8 +58,7 @@ def predict(dataes, model):
 
     for i, ax in enumerate(axs[:len(dataes)]):
         # Use tf.cast instead of asType
-        img = tf.cast(data_file[i]*255, tf.uint8)
-        ax.imshow(img.numpy()) # convert tensor to numpy before plotting
+        ax.imshow(data_file[i]) # convert tensor to numpy before plotting
         ax.set_title(Classes[pred[i]], fontsize=40)
         ax.axis("off")
     
@@ -54,25 +72,22 @@ def predict(dataes, model):
 def main():
     st.write('# Animals Classification')
     img_files = st.file_uploader('## 분류할 동물사진을 업로드 하세요.',type=['png','jpg','jpeg'],accept_multiple_files=True)
-    stream = st.file_uploader('TF.Keras model file (.h5py.zip)', type='zip')
-    if stream is not None:
-        myzipfile = zipfile.ZipFile(stream)
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            myzipfile.extractall(tmp_dir)
-            root_folder = myzipfile.namelist()[0]
-            model_dir = os.path.join(tmp_dir, root_folder)
-            with keras.utils.custom_object_scope({'KerasLayer': hub.KerasLayer}):
-                model = tf.keras.models.load_model(model_dir)
+ 
         
     if img_files is not None:
         img_array = []
         for img_file in img_files:
             img = Image.open(img_file)
             img_array.append(np.array(img))
-    
-    if img_files is not None and stream is not None:
-        predict(img_array,model)  
-        
+        try:
+            with st.spinner("인공지능 빵 나오는 중...."):
+                predict(img_array)  
+        except:
+            pass
+
+   
 if __name__ == '__main__':
+    with st.spinner("인공지능 빵 굽는중...."):
+        model=loads_model()
     main()
     
