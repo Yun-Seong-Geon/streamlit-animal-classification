@@ -8,6 +8,9 @@ import tensorflow_hub as hub
 import tensorflow as tf
 import math
 from PIL import Image
+import zipfile
+import tempfile
+import os
 
 def preprocess(image):
     image = tf.image.resize(image, [256,256]) / 255.0
@@ -45,12 +48,22 @@ def predict(data,model_img):
 def main():
     st.write('# Animals Classification')
     img_file = st.file_uploader('## 분류할 동물사진을 업로드 하세요.',type=['png','jpg','jpeg'])
-    model_file = st.file_uploader('모델을 업로드 하세요.',type=['h5'])
+    stream = st.file_uploader('TF.Keras model file (.h5py.zip)', type='zip')
+    if stream is not None:
+        myzipfile = zipfile.ZipFile(stream)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            myzipfile.extractall(tmp_dir)
+        root_folder = myzipfile.namelist()[0] # e.g. "model.h5py"
+        model_dir = os.path.join(tmp_dir, root_folder)
+        #st.info(f'trying to load model from tmp dir {model_dir}...')
+        model = tf.keras.models.load_model(model_dir)
+        
     if img_file is not None:
         img = Image.open(img_file)
         img_array = np.array(img)
-        predict(img,model_file)        
     
+    if img_file is not None and stream is not None:
+        predict(img,model)  
 
 main()
     
