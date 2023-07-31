@@ -17,7 +17,6 @@ import time
 FILE_ID = "1MN_hfzw78DVWT0JSPauIVLlzy7L4Wr2R"  # 여기에 모델 파일의 Google Drive ID를 입력하세요
 MODEL_PATH = 'model.h5'
 MODEL_URL = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
-#### 권건표
 
 def preprocess(image):
     image = tf.image.resize(image, [256,256]) / 255.0
