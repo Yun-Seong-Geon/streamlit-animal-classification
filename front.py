@@ -44,9 +44,15 @@ def predict(dataes):
     with st.spinner('인공지능이 빵을 굽고 있어요...'):
         model = loads_model()  
     data_file = np.array([preprocess(data) for data in dataes])
-    with st.spinner("인공지능 빵이 나오고 있어요...."):
-        pred = model.predict(data_file)
-        time.sleep(2)
+    
+    try:
+        with st.spinner("인공지능 빵이 나오고 있어요...."):
+            pred = model.predict(data_file)
+            time.sleep(2)
+    except Exception as e:
+        st.write(f"예외가 발생했습니다: {e}")
+        return
+
     pred = np.argmax(pred,axis=1)
 
     if len(dataes) == 1:
